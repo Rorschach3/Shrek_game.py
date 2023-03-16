@@ -26,13 +26,19 @@ BLACK = (0, 0, 0)
 GRAY = (127, 127, 127)
 WHITE = (255, 255, 255)
 
+playerLives = 5 #Shreks lives
+level = 1 # start at level 1
+
+
+caption = 'Shrek pygame'
+pygame.display.set_caption(caption)
 
 # Define a player object by extending pygame.sprite.Sprite
 # The surface drawn on the screen is now an attribute of 'player'
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
-        self.surf = pygame.image.load("flying_shrek_face.png").convert()
+        self.surf = pygame.image.load("flying_shrek_face.png").convert_alpha()
         ### self.surf.set_colorkey(WHITE, RLEACCEL)
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         
@@ -64,9 +70,9 @@ class Player(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
-        self.surf = pygame.image.load("onion.png").convert()
+        self.surf = pygame.image.load("onion.png").convert_alpha()
         ### self.surf.set_colorkey(WHITE)
-        self.surf.set_colorkey((255, 255, 255), RLEACCEL)
+        self.surf.set_colorkey((0, 0, 0), RLEACCEL)
         
         # The starting position is randomly generated, as is the speed
         self.rect = self.surf.get_rect(
@@ -75,7 +81,7 @@ class Enemy(pygame.sprite.Sprite):
                 random.randint(0, SCREEN_HEIGHT),
             )
         )
-        self.speed = random.randint(5, 20)
+        self.speed = random.randint(9, 20)
 
     # Move the sprite based on speed
     # Remove the sprite when it passes the left edge of the screen
@@ -92,9 +98,9 @@ class Dragon(pygame.sprite.Sprite):
         super(Dragon, self).__init__()
         
         # load the image
-        self.surf = pygame.image.load("dragon.png").convert()
+        self.surf = pygame.image.load("dragon.png").convert_alpha()
         ### self.surf.set_colorkey(WHITE, RLEACCEL)
-        self.surf.set_colorkey((0, 0, 0), RLEACCEL)
+        self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         # The starting position is randomly generated
         self.rect = self.surf.get_rect(
             center=(
@@ -109,7 +115,7 @@ class Dragon(pygame.sprite.Sprite):
         self.rect.move_ip(-5, 0)
         if self.rect.right < 0:
             self.kill()
-level = 1 # start at level 1
+
 
 def generate_enemies(level):
     num_enemies = level * 5  # increase number of enemies by 5 for each level
@@ -118,6 +124,14 @@ def generate_enemies(level):
         enemy = Enemy()  # create a new instance of the Enemy class
         enemies.append(enemy)
     return enemies
+
+# Show lives left on the screen
+def show_score(x, y):
+    score = font.render("Score : " + str(score_value), True, (255, 255, 255))
+    screen.blit(score, (x, y))
+    # Write the Lives-left to the right of the score
+    lives = font.render("Lives : " + str(playerLives), True, (255, 255, 255))
+    screen.blit(lives, (x+200, y))
 
 # Initialize pygame
 pygame.init()
@@ -129,11 +143,11 @@ clock = pygame.time.Clock()
 # The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-enemy_spawn_time = 5000  # initial spawn time
-last_enemy_spawn = pygame.time.get_ticks()  # time since start of game
+ADDENEMY = pygame.USEREVENT + 3
+pygame.time.set_timer(ADDENEMY, 800)
 
 ADDDRAGON = pygame.USEREVENT + 1
-pygame.time.set_timer(ADDDRAGON, 1000)
+pygame.time.set_timer(ADDDRAGON, 6000)
 
 # Instantiate player. Right now, this is just a rectangle.
 player = Player()
@@ -159,7 +173,7 @@ pygame.mixer.music.play(loops=-1)
 running = True
 
 # background image
-background_image = pygame.image.load("shrek_background.png").convert()
+background = pygame.image.load("shrek_background.png").convert()
 
 # Main loop
 while running:
@@ -175,15 +189,16 @@ while running:
             running = False
 
         # Add a new enemy?
-        for enemy in enemies:
+        '''for enemy in enemies:
             enemy.update()
-            enemy.draw(screen)
+            enemy.draw(screen)'''
         
-        '''elif event.type == ADDENEMY:
+           # Add a new enemy?
+        if event.type == ADDENEMY:
             # Create the new enemy and add it to sprite groups
             new_enemy = Enemy()
             enemies.add(new_enemy)
-            all_sprites.add(new_enemy)'''
+            all_sprites.add(new_enemy)
 
         # a new Dragon?
         if event.type == ADDDRAGON:
@@ -200,8 +215,8 @@ while running:
     enemies.update()
     dragons.update()
 
-    # Fill the screen with sky blue
-    screen.fill((135, 206, 250))
+    # game background image
+    screen.blit(background, (0, 0))
 
     # Draw all sprites
     for entity in all_sprites:
@@ -210,13 +225,18 @@ while running:
     # Check if any enemies have collided with the player
     if pygame.sprite.spritecollideany(player, enemies):
         
-        # If so, then remove the player and stop the loop
-        player.kill()
-
-        # if so, then play sound
-        player_dead_sound.play()
+        playerLives -= 1 # if onion hits shrek, minus 1 life
         
-        running = False
+        if playerLives <= 0: # if lives get to zero statement
+        
+            # If so, then remove the player and stop the loop
+            player.kill()
+
+            # if so, then play sound
+            player_dead_sound.play()
+            
+            running = False
+        
     # Draw the player on the screen
     screen.blit(player.surf, player.rect)
 
