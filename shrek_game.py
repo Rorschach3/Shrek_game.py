@@ -31,6 +31,7 @@ pygame.init()
 
 playerLives = 5 #Shreks lives
 level = 1 # start at level 1
+score_value = 0 # start with 0 score
 
 
 # Define the font for the score and lives display
@@ -93,7 +94,7 @@ class Enemy(pygame.sprite.Sprite):
                 random.randint(0, SCREEN_HEIGHT),
             )
         )
-        self.speed = random.randint(9, 20)
+        self.speed = random.randint(10, 20)
 
     # Move the sprite based on speed
     # Remove the sprite when it passes the left edge of the screen
@@ -137,26 +138,26 @@ class Dragon(pygame.sprite.Sprite):
             enemies.append(enemy)
         return enemies
 
-    # Show lives left on the screen
-    def show_score(x, y):
-        score = font.render("Score : " + str(score_value), True, (255, 255, 255))
-        screen.blit(score, (x, y))
-        # Write the Lives-left to the right of the score
-        lives = font.render("Lives : " + str(playerLives), True, (255, 255, 255))
-        screen.blit(lives, (x+200, y))
+# Show lives left on the screen
+def show_score(x, y):
+    score = font.render("Score : " + str(score_value), True, (255, 255, 255))
+    screen.blit(score, (x, y))
+    # Write the Lives-left to the right of the score
+    lives = font.render("Lives : " + str(playerLives), True, (255, 255, 255))
+    screen.blit(lives, (x+200, y))
 
 
 # Initialize pygame
 pygame.init()
 
 
-# Setup clock for framerate control
+# Initialize clock for framerate control
 clock = pygame.time.Clock()
 # Create the screen object
 # The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-ADDENEMY = pygame.USEREVENT + 2
+ADDENEMY = pygame.USEREVENT + 3
 pygame.time.set_timer(ADDENEMY, 500)
 
 ADDDRAGON = pygame.USEREVENT + 1
@@ -236,19 +237,19 @@ while running:
         screen.blit(entity.surf, entity.rect)
 
     # Check if any enemies have collided with the player
-    while pygame.sprite.spritecollideany(player, enemies) and playerLives > 0:
+    if pygame.sprite.spritecollideany(player, enemies):
         
         playerLives -= 1 # if onion hits shrek, minus 1 life
-        
-        if playerLives <= 0: # if lives get to zero statement
-        
-            # If so, then remove the player and stop the loop
-            player.kill()
 
             # if so, then play sound
-            player_dead_sound.play()
+        player_dead_sound.play()
             
-            running = False
+        if playerLives <= 0:
+            player.kill()   # If so, then remove the player and stop the loop
+            running = False # stop the loop
+            
+        #Update the score and lives
+        show_score(10, 10)
         
     # Draw the player on the screen
     screen.blit(player.surf, player.rect)
@@ -256,5 +257,6 @@ while running:
     # Update the display
     pygame.display.flip()
     
+
     # Ensure program maintains a rate of 30 frames per second
-    clock.tick(30)
+    clock.tick(60)
