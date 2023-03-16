@@ -18,16 +18,23 @@ from pygame.locals import (
 )
 
 # Define constants for the screen width and height
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1600
+SCREEN_HEIGHT = 1200
 
 # Define colors
 BLACK = (0, 0, 0)
 GRAY = (127, 127, 127)
 WHITE = (255, 255, 255)
 
+# Initialize pygame
+pygame.init()
+
 playerLives = 5 #Shreks lives
 level = 1 # start at level 1
+
+
+# Define the font for the score and lives display
+font = pygame.font.Font(None, 36)
 
 
 caption = 'Shrek pygame'
@@ -41,8 +48,9 @@ class Player(pygame.sprite.Sprite):
         self.surf = pygame.image.load("flying_shrek_face.png").convert_alpha()
         ### self.surf.set_colorkey(WHITE, RLEACCEL)
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
-        
         self.rect = self.surf.get_rect()
+        
+        self.lives = 5
 
     def update(self, pressed_keys):
         if pressed_keys[K_UP]:
@@ -63,6 +71,10 @@ class Player(pygame.sprite.Sprite):
             self.rect.top = 0
         elif self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
+            
+    def lose_life(self):
+        self.lives -= 1
+
 
 
 # Define the enemy object by extending pygame.sprite.Sprite
@@ -117,21 +129,22 @@ class Dragon(pygame.sprite.Sprite):
             self.kill()
 
 
-def generate_enemies(level):
-    num_enemies = level * 5  # increase number of enemies by 5 for each level
-    enemies = []
-    for i in range(level):
-        enemy = Enemy()  # create a new instance of the Enemy class
-        enemies.append(enemy)
-    return enemies
+    def generate_enemies(level):
+        num_enemies = level * 5  # increase number of enemies by 5 for each level
+        enemies = []
+        for i in range(level):
+            enemy = Enemy()  # create a new instance of the Enemy class
+            enemies.append(enemy)
+        return enemies
 
-# Show lives left on the screen
-def show_score(x, y):
-    score = font.render("Score : " + str(score_value), True, (255, 255, 255))
-    screen.blit(score, (x, y))
-    # Write the Lives-left to the right of the score
-    lives = font.render("Lives : " + str(playerLives), True, (255, 255, 255))
-    screen.blit(lives, (x+200, y))
+    # Show lives left on the screen
+    def show_score(x, y):
+        score = font.render("Score : " + str(score_value), True, (255, 255, 255))
+        screen.blit(score, (x, y))
+        # Write the Lives-left to the right of the score
+        lives = font.render("Lives : " + str(playerLives), True, (255, 255, 255))
+        screen.blit(lives, (x+200, y))
+
 
 # Initialize pygame
 pygame.init()
@@ -143,8 +156,8 @@ clock = pygame.time.Clock()
 # The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-ADDENEMY = pygame.USEREVENT + 3
-pygame.time.set_timer(ADDENEMY, 800)
+ADDENEMY = pygame.USEREVENT + 2
+pygame.time.set_timer(ADDENEMY, 500)
 
 ADDDRAGON = pygame.USEREVENT + 1
 pygame.time.set_timer(ADDDRAGON, 6000)
@@ -223,7 +236,7 @@ while running:
         screen.blit(entity.surf, entity.rect)
 
     # Check if any enemies have collided with the player
-    if pygame.sprite.spritecollideany(player, enemies):
+    while pygame.sprite.spritecollideany(player, enemies) and playerLives > 0:
         
         playerLives -= 1 # if onion hits shrek, minus 1 life
         
