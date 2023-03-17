@@ -1,7 +1,6 @@
-# Import the pygame module
+# Import the pygame, time, and random module
 import pygame
-
-# import random for random numbers
+import time
 import random
 
 # Import pygame.locals for easier access to key coordinates
@@ -29,28 +28,34 @@ WHITE = (255, 255, 255)
 # Initialize pygame
 pygame.init()
 
-playerLives = 5 #Shreks lives
-level = 1 # start at level 1
-score_value = 0 # start with 0 score
+# Create the screen object, the size is determined by the game window dimensions
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+clock = pygame.time.Clock()  # Initialize clock for framerate control
+
+playerLives = 5  # Shreks lives
+level = 1  # start at level 1
+score_value = 0  # start with 0 score
 
 
 # Define the font for the score and lives display
 font = pygame.font.Font(None, 36)
 
-
-caption = 'Shrek pygame'
+caption = 'Shrek Pygame'
 pygame.display.set_caption(caption)
 
 # Define a player object by extending pygame.sprite.Sprite
 # The surface drawn on the screen is now an attribute of 'player'
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
         self.surf = pygame.image.load("flying_shrek_face.png").convert_alpha()
-        ### self.surf.set_colorkey(WHITE, RLEACCEL)
+        # self.surf.set_colorkey(WHITE, RLEACCEL)
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         self.rect = self.surf.get_rect()
-        
+
         self.lives = 5
 
     def update(self, pressed_keys):
@@ -72,21 +77,18 @@ class Player(pygame.sprite.Sprite):
             self.rect.top = 0
         elif self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
-            
-    def lose_life(self):
-        self.lives -= 1
-
-
 
 # Define the enemy object by extending pygame.sprite.Sprite
 # The surface you draw on the screen is now an attribute of 'enemy'
+
+
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
         self.surf = pygame.image.load("onion.png").convert_alpha()
-        ### self.surf.set_colorkey(WHITE)
+        # self.surf.set_colorkey(WHITE)
         self.surf.set_colorkey((0, 0, 0), RLEACCEL)
-        
+
         # The starting position is randomly generated, as is the speed
         self.rect = self.surf.get_rect(
             center=(
@@ -109,10 +111,10 @@ class Enemy(pygame.sprite.Sprite):
 class Dragon(pygame.sprite.Sprite):
     def __init__(self):
         super(Dragon, self).__init__()
-        
+
         # load the image
         self.surf = pygame.image.load("dragon.png").convert_alpha()
-        ### self.surf.set_colorkey(WHITE, RLEACCEL)
+        # self.surf.set_colorkey(WHITE, RLEACCEL)
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         # The starting position is randomly generated
         self.rect = self.surf.get_rect(
@@ -121,41 +123,60 @@ class Dragon(pygame.sprite.Sprite):
                 random.randint(0, SCREEN_HEIGHT),
             )
         )
+        self.speed = random.randint(5, 16)
 
-    # Move the dragon based on a constant speed
-    # Remove the dragon when it passes the left edge of the screen
     def update(self):
-        self.rect.move_ip(-5, 0)
+        self.rect.move_ip(-self.speed, 0)
         if self.rect.right < 0:
             self.kill()
 
 
-    def generate_enemies(level):
-        num_enemies = level * 5  # increase number of enemies by 5 for each level
-        enemies = []
-        for i in range(level):
-            enemy = Enemy()  # create a new instance of the Enemy class
-            enemies.append(enemy)
-        return enemies
+def generate_enemies(level):
+    num_enemies = level * 5  # increase number of enemies by 5 for each level
+    enemies = []
+    for i in range(num_enemies):
+        enemy = Enemy()  # create a new instance of the Enemy class
+        enemies.append(enemy)
+    return enemies
+
+
+def text_objects(text, font):
+    textSurface = font.render(text, True, BLACK)
+    return textSurface, textSurface.get_rect()
+
+
+def message_display(text):
+    largeText = pygame.font.Font('freesansbold.ttf', 115)
+    TextSurf, TextRect = text_objects(text, largeText)
+    TextRect.center = ((SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+    screen.blit(TextSurf, TextRect)
+
+    pygame.display.flip()
+
+    time.sleep(2)
 
 # Show lives left on the screen
+
+
 def show_score(x, y):
-    score = font.render("Score : " + str(score_value), True, (255, 255, 255))
-    screen.blit(score, (x, y))
+    score = font.render("Score : " + str(score_value),
+                        True, (255, 255, 255))
+    screen.blit(score, (SCREEN_WIDTH, SCREEN_HEIGHT))
     # Write the Lives-left to the right of the score
-    lives = font.render("Lives : " + str(playerLives), True, (255, 255, 255))
-    screen.blit(lives, (x+200, y))
+    lives = font.render("Lives : " + str(playerLives),
+                        True, (255, 255, 255))
+    screen.blit(lives, (SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100))
 
+    while True:
+        for event in pygame.event.get():
+            # print(event)
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
 
-# Initialize pygame
-pygame.init()
+        pygame.display.flip()
+        clock.tick(30)
 
-
-# Initialize clock for framerate control
-clock = pygame.time.Clock()
-# Create the screen object
-# The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 ADDENEMY = pygame.USEREVENT + 3
 pygame.time.set_timer(ADDENEMY, 500)
@@ -175,14 +196,18 @@ all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
 # variable created to reference the background music
+background_music = pygame.mixer.music.load('allstar_background_music.ogg')
 background_music = pygame.mixer.Sound("allstar_background_music.ogg")
+background_music.play()
+
+# pygame.mixer.background_music.set_endevent(pygame.constants.USEREVENT)
+
+# Sound Effects
 player_dead_sound = pygame.mixer.Sound("it_all_ogre_now.mp3")
+fart = pygame.mixer.Sound("shrek_fart.mp3")
 
-#Background music
-pygame.mixer.music.load('allstar_background_music.ogg')
-pygame.mixer.music.set_endevent(pygame.constants.USEREVENT)
-pygame.mixer.music.play(loops=-1)
 
+pygame.mixer.music.load("it_all_ogre_now.mp3")
 # Variable to keep the main loop running
 running = True
 
@@ -193,30 +218,22 @@ background = pygame.image.load("shrek_background.png").convert()
 while running:
     # for loop through the event queue
     for event in pygame.event.get():
-        # Check for KEYDOWN event
-        if event.type == KEYDOWN:
-            # If the Esc key is pressed, then exit the main loop
-            if event.key == K_ESCAPE:
+
+        if event.type == KEYDOWN:  # Check for KEYDOWN event
+
+            if event.key == K_ESCAPE:  # If the Esc key is pressed, then exit the main loop
+
                 running = False
-        # Check for QUIT event. If QUIT, then set running to false.
-        elif event.type == QUIT:
+
+        elif event.type == QUIT:  # Check for QUIT event. If QUIT, then set running to false
             running = False
 
-        # Add a new enemy?
-        '''for enemy in enemies:
-            enemy.update()
-            enemy.draw(screen)'''
-        
-           # Add a new enemy?
-        if event.type == ADDENEMY:
-            # Create the new enemy and add it to sprite groups
+        if event.type == ADDENEMY:  # Add a new enemy?
             new_enemy = Enemy()
             enemies.add(new_enemy)
             all_sprites.add(new_enemy)
 
-        # a new Dragon?
-        if event.type == ADDDRAGON:
-            # Create the new draon and add it to sprite groups
+        if event.type == ADDDRAGON:  # create a new dragon and add it to sprite groups
             new_dragon = Dragon()
             dragons.add(new_dragon)
             all_sprites.add(new_dragon)
@@ -229,7 +246,7 @@ while running:
     enemies.update()
     dragons.update()
 
-    # game background image
+    # game backgrounscreend image
     screen.blit(background, (0, 0))
 
     # Draw all sprites
@@ -237,26 +254,29 @@ while running:
         screen.blit(entity.surf, entity.rect)
 
     # Check if any enemies have collided with the player
-    if pygame.sprite.spritecollideany(player, enemies):
-        
-        playerLives -= 1 # if onion hits shrek, minus 1 life
-
+        print(event)
+        if pygame.sprite.spritecollideany(player, enemies):
+            fart.play()
+            player.kill()
+            playerLives -= 1  # if onion hits shrek, minus 1 life
             # if so, then play sound
-        player_dead_sound.play()
-            
-        if playerLives <= 0:
-            player.kill()   # If so, then remove the player and stop the loop
-            running = False # stop the loop
-            
-        #Update the score and lives
-        show_score(10, 10)
-        
-    # Draw the player on the screen
-    screen.blit(player.surf, player.rect)
+            background_music.stop()
+            time.sleep(2)
 
-    # Update the display
-    pygame.display.flip()
-    
+            if playerLives > 0:
+                continue
+
+            else:
+                player_dead_sound.play()
+                message_display('Game Over')
+                player_dead_sound.stop()
+                pygame.quit()
+                quit()
+
+        # Draw the player on the screen
+        screen.blit(player.surf, player.rect)
+
+    pygame.display.flip()  # Update the display
 
     # Ensure program maintains a rate of 30 frames per second
     clock.tick(60)
