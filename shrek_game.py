@@ -1,48 +1,162 @@
 # Import the pygame, time, and random module
 import pygame
+import sys
 import time
 import random
+from pygame.locals import *
 
-# Import pygame.locals for easier access to key coordinates
-# Updated to conform to flake8 and black standards
-from pygame.locals import (
-    RLEACCEL,
-    K_UP,
-    K_DOWN,
-    K_LEFT,
-    K_RIGHT,
-    K_ESCAPE,
-    KEYDOWN,
-    QUIT,
-)
+# Initialize pygame
+pygame.init()
 
 # Define constants for the screen width and height
 SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 1200
 
 # Define colors
-BLACK = (0, 0, 0)
-GRAY = (127, 127, 127)
-WHITE = (255, 255, 255)
-
-# Initialize pygame
-pygame.init()
+BLACK = ((0, 0, 0))
+GRAY = ((127, 127, 127))
+WHITE = ((255, 255, 255))
+GREEN = ((0, 255, 0))
+RED = ((255, 0, 0))
 
 # Create the screen object, the size is determined by the game window dimensions
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 clock = pygame.time.Clock()  # Initialize clock for framerate control
 
-playerLives = 5  # Shreks lives
+playerLives = 1  # Shreks lives
 level = 1  # start at level 1
 score_value = 0  # start with 0 score
 
-
 # Define the font for the score and lives display
-font = pygame.font.Font(None, 36)
+font = pygame.font.Font(None, 50)
 
-caption = 'Shrek Pygame'
-pygame.display.set_caption(caption)
+pygame.display.set_caption("Shrek Game")
+
+
+def game_intro():
+    intro = True
+    while intro:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+    screen.fill(WHITE)
+    largeText = pygame.font.Font('shrek_font.ttf', 115)
+    TextSurf, TextRect = text_objects("Flying Swamp Ogre Game", largeText)
+    TextRect.center = ((SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+    screen.blit(TextSurf, TextRect)
+
+    mouse = pygame.mouse.get_pos()
+
+    if 150 + 100 > mouse[0] > 150 and 450 + 50 > mouse[1] > 450:
+        pygame.draw.rect(screen, GREEN, (150, 450, 100, 50))
+    else:
+        pygame.draw.rect(screen, RED, (150, 450, 100, 50))
+
+    smallText = pygame.font.Font("shrek_font.ttf", 20)
+    textSurf, textRect = text_objects("Start", smallText)
+    textRect.center = ()
+
+    pygame.display.update()
+    # clock.tick(30)
+
+
+def button(msg, x, y, w, h, ic, ac, action=None):
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+    print(click)
+    if x + w > mouse[0] > x and y + h > mouse[1] > y:
+        pygame.draw.rect(screen, ac, (x, y, w, h))
+        if click[0] == 1 and action != None:
+            if action == "Resume":
+                pass
+            elif action == "Quit":
+                pygame.quit()
+                quit()
+    else:
+        pygame.draw.rect(screen, ic, (x, y, w, h))
+
+    smallText = pygame.font.Font("shrek_font.ttf", 20)
+    textSurf, textRect = text_objects(msg, smallText)
+    pygame.draw.rect(screen, GREEN, (150, 450, 100, 50))
+
+
+def quitgame():
+    pygame.quit()
+    quit()
+
+
+def unpause():
+    global pause
+    pause = False
+
+
+def paused():
+    pause = True
+    while pause:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        screen.fill(WHITE)
+        largeText = pygame.font.Font('shrek_font.TTF', 115)
+        TextSurf, TextRect = text_objects("Paused", largeText)
+        TextRect.center = ((SCREEN_WIDTH / 2, SCREEN_HEIGHT / 1.5))
+        screen.blit(TextSurf, TextRect)
+        button("Resume", 150, 450, 100, 50,
+               ((0, 128, 0)), GREEN, unpause)
+        button("Quit", 550, 450, 100, 50,
+               ((128, 0, 0)), RED, quitgame)
+
+        pygame.display.flip()  # same as pygame.display.update()
+        # clock.tick(60)
+
+
+def text_objects(text, font):
+    textSurface = font.render(text, True, BLACK)
+    return textSurface, textSurface.get_rect()
+
+
+def message_display(text):
+    largeText = pygame.font.Font('shrek_font.TTF', 215)
+    TextSurf, TextRect = text_objects(text, largeText)
+    TextRect.center = ((SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+    screen.blit(TextSurf, TextRect)
+
+    pygame.display.flip()
+    time.sleep(2)
+
+
+def show_score(playerLives):
+    lifeText = pygame.font.Font('shrk_font.ttf', 64)
+    TextSurf, TextRect = text_objects("Lives: " + str(playerLives), lifeText)
+    TextRect.center = ((SCREEN_WIDTH - 1500, SCREEN_HEIGHT-10))
+    screen.blit(TextSurf, TextRect)
+
+    pygame.display.flip()
+
+    score = font.render("Score : " + str(score_value),
+                        True, WHITE)
+    screen.blit(score, (SCREEN_WIDTH, SCREEN_HEIGHT))
+    # Write the Lives-left to the right of the score
+    lives = font.render("Lives : " + str(playerLives),
+                        True, WHITE)
+    screen.blit(lives, (SCREEN_WIDTH - 150, SCREEN_HEIGHT - 1150))
+
+    '''while True:
+        game_intro()
+        for event in pygame.event.get():
+            # show_score(score)
+
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        pygame.display.flip()
+        clock.tick(60)'''
 
 # Define a player object by extending pygame.sprite.Sprite
 # The surface drawn on the screen is now an attribute of 'player'
@@ -53,10 +167,8 @@ class Player(pygame.sprite.Sprite):
         super(Player, self).__init__()
         self.surf = pygame.image.load("flying_shrek_face.png").convert_alpha()
         # self.surf.set_colorkey(WHITE, RLEACCEL)
-        self.surf.set_colorkey((255, 255, 255), RLEACCEL)
+        self.surf.set_colorkey(WHITE, RLEACCEL)
         self.rect = self.surf.get_rect()
-
-        self.lives = 5
 
     def update(self, pressed_keys):
         if pressed_keys[K_UP]:
@@ -87,7 +199,7 @@ class Enemy(pygame.sprite.Sprite):
         super(Enemy, self).__init__()
         self.surf = pygame.image.load("onion.png").convert_alpha()
         # self.surf.set_colorkey(WHITE)
-        self.surf.set_colorkey((0, 0, 0), RLEACCEL)
+        self.surf.set_colorkey(BLACK, RLEACCEL)
 
         # The starting position is randomly generated, as is the speed
         self.rect = self.surf.get_rect(
@@ -96,7 +208,7 @@ class Enemy(pygame.sprite.Sprite):
                 random.randint(0, SCREEN_HEIGHT),
             )
         )
-        self.speed = random.randint(10, 20)
+        self.speed = random.randint(14, 20)
 
     # Move the sprite based on speed
     # Remove the sprite when it passes the left edge of the screen
@@ -105,9 +217,10 @@ class Enemy(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
 
-
 # Define the dragon object by extending pygame.sprite.Sprite
 # Use an image for a better-looking sprite
+
+
 class Dragon(pygame.sprite.Sprite):
     def __init__(self):
         super(Dragon, self).__init__()
@@ -115,7 +228,7 @@ class Dragon(pygame.sprite.Sprite):
         # load the image
         self.surf = pygame.image.load("dragon.png").convert_alpha()
         # self.surf.set_colorkey(WHITE, RLEACCEL)
-        self.surf.set_colorkey((255, 255, 255), RLEACCEL)
+        self.surf.set_colorkey(WHITE, RLEACCEL)
         # The starting position is randomly generated
         self.rect = self.surf.get_rect(
             center=(
@@ -123,7 +236,7 @@ class Dragon(pygame.sprite.Sprite):
                 random.randint(0, SCREEN_HEIGHT),
             )
         )
-        self.speed = random.randint(5, 16)
+        self.speed = random.randint(8, 12)
 
     def update(self):
         self.rect.move_ip(-self.speed, 0)
@@ -140,49 +253,11 @@ def generate_enemies(level):
     return enemies
 
 
-def text_objects(text, font):
-    textSurface = font.render(text, True, BLACK)
-    return textSurface, textSurface.get_rect()
-
-
-def message_display(text):
-    largeText = pygame.font.Font('freesansbold.ttf', 115)
-    TextSurf, TextRect = text_objects(text, largeText)
-    TextRect.center = ((SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
-    screen.blit(TextSurf, TextRect)
-
-    pygame.display.flip()
-
-    time.sleep(2)
-
-# Show lives left on the screen
-
-
-def show_score(x, y):
-    score = font.render("Score : " + str(score_value),
-                        True, (255, 255, 255))
-    screen.blit(score, (SCREEN_WIDTH, SCREEN_HEIGHT))
-    # Write the Lives-left to the right of the score
-    lives = font.render("Lives : " + str(playerLives),
-                        True, (255, 255, 255))
-    screen.blit(lives, (SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100))
-
-    while True:
-        for event in pygame.event.get():
-            # print(event)
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-        pygame.display.flip()
-        clock.tick(30)
-
-
-ADDENEMY = pygame.USEREVENT + 3
+ADDENEMY = pygame.USEREVENT + 3 * level
 pygame.time.set_timer(ADDENEMY, 500)
 
-ADDDRAGON = pygame.USEREVENT + 1
-pygame.time.set_timer(ADDDRAGON, 6000)
+ADDDRAGON = pygame.USEREVENT + 1 * level
+pygame.time.set_timer(ADDDRAGON, 6500)
 
 # Instantiate player. Right now, this is just a rectangle.
 player = Player()
@@ -196,26 +271,25 @@ all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
 # variable created to reference the background music
-background_music = pygame.mixer.music.load('allstar_background_music.ogg')
-background_music = pygame.mixer.Sound("allstar_background_music.ogg")
-background_music.play()
-
+pygame.mixer.init()
+pygame.mixer.music.load('allstar_background_music.ogg')
+pygame.mixer.music.play(-1, 0.0)
 # pygame.mixer.background_music.set_endevent(pygame.constants.USEREVENT)
 
 # Sound Effects
 player_dead_sound = pygame.mixer.Sound("it_all_ogre_now.mp3")
 fart = pygame.mixer.Sound("shrek_fart.mp3")
 
-
-pygame.mixer.music.load("it_all_ogre_now.mp3")
 # Variable to keep the main loop running
 running = True
 
 # background image
 background = pygame.image.load("shrek_background.png").convert()
 
+
 # Main loop
 while running:
+
     # for loop through the event queue
     for event in pygame.event.get():
 
@@ -246,7 +320,8 @@ while running:
     enemies.update()
     dragons.update()
 
-    # game backgrounscreend image
+    # game background image
+    # screen.blit(255, 255, 255)
     screen.blit(background, (0, 0))
 
     # Draw all sprites
@@ -254,29 +329,26 @@ while running:
         screen.blit(entity.surf, entity.rect)
 
     # Check if any enemies have collided with the player
-        print(event)
         if pygame.sprite.spritecollideany(player, enemies):
-            fart.play()
-            player.kill()
-            playerLives -= 1  # if onion hits shrek, minus 1 life
-            # if so, then play sound
-            background_music.stop()
-            time.sleep(2)
+            # fart.play()
+            playerLives -= 1  # minus 1 life
 
             if playerLives > 0:
                 continue
 
             else:
                 player_dead_sound.play()
+                pygame.mixer.music.stop()
                 message_display('Game Over')
-                player_dead_sound.stop()
+                player.kill()
+                time.sleep(2)
                 pygame.quit()
-                quit()
+                sys.exit()
 
-        # Draw the player on the screen
-        screen.blit(player.surf, player.rect)
+    # Draw the player on the screen
+    screen.blit(player.surf, player.rect)
 
     pygame.display.flip()  # Update the display
 
-    # Ensure program maintains a rate of 30 frames per second
+    # Ensure program maintains a rate of 60 frames per second
     clock.tick(60)
