@@ -9,8 +9,8 @@ from pygame.locals import *
 pygame.init()
 
 # Define constants for the screen width and height
-SCREEN_WIDTH = 1600
-SCREEN_HEIGHT = 1200
+SCREEN_WIDTH = 1440
+SCREEN_HEIGHT = 1120
 
 # Define colors
 BLACK = ((0, 0, 0))
@@ -29,7 +29,6 @@ level = 1  # start at level 1
 score_value = 0  # start with 0 score
 
 # Define the font for the score and lives display
-font = pygame.font.Font(None, 50)
 
 pygame.display.set_caption("Shrek Game")
 
@@ -127,6 +126,8 @@ class GameMenu:
         if self.items[self.cur_item].text == "Quit":
             pygame.quit()
             sys.exit()
+        if self.items[self.cur_item].text == "Options":
+            return python3 demo.py
         elif self.items[self.cur_item].text == "Play":
             self.running = False
 
@@ -498,7 +499,7 @@ while running:
 
     # Check if any enemies have collided with the player
         if pygame.sprite.spritecollideany(player, enemies):
-            # fart.play()
+            fart.play()
             playerLives -= 1  # minus 1 life
 
             if playerLives > 0:
