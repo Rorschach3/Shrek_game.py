@@ -127,7 +127,7 @@ class GameMenu:
             pygame.quit()
             sys.exit()
         if self.items[self.cur_item].text == "Options":
-            return python3 demo.py
+            pass
         elif self.items[self.cur_item].text == "Play":
             self.running = False
 
@@ -196,11 +196,10 @@ if __name__ == "__main__":
     g = Game()
     font = pygame.font.match_font("shrek_font.ttf")
     # standard list of options and customized labels
-    items = {"play": "Play", "opt": "Options", "quit": "Quit"}
-    menu = GameMenu(g, "My Game", ["Play", "Options", "Quit"], font=font, font_size=120)
+    items = {"play": "Play", "opt": "1s", "quit": "Quit"}
+    menu = GameMenu(game=g, title="My Game", items=["Play", "Options", "Quit"], font=font, font_size=120)
     menu.run()
     print("starting game")
-
 
 
 def game_intro():
@@ -212,8 +211,8 @@ def game_intro():
                 quit()
 
     screen.fill(WHITE)
-    largeText = pygame.font.Font('shrek_font.ttf', 115)
-    TextSurf, TextRect = text_objects("Flying Swamp Ogre Game", largeText)
+    largeText = pygame.font.Font('shrek_font.ttf', 85)
+    TextSurf, TextRect = text_objects("Flying Swamp Ogre Game")
     TextRect.center = ((SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
     screen.blit(TextSurf, TextRect)
 
@@ -238,7 +237,7 @@ def button(msg, x, y, w, h, ic, ac, action=None):
     print(click)
     if x + w > mouse[0] > x and y + h > mouse[1] > y:
         pygame.draw.rect(screen, ac, (x, y, w, h))
-        if click[0] == 1 and action != None:
+        if click[0] == 1 and action: not None:
             if action == "Resume":
                 pass
             elif action == "Quit":
